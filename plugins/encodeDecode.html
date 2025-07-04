@@ -581,7 +581,7 @@
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
         <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+            src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
         <script>
         // 标签页切换功能
         function showTab(tabName) {
@@ -1001,10 +1001,29 @@
                 return;
             }
             
+            // 检查QRCode库是否加载
+            if (typeof QRCode === 'undefined') {
+                // 使用备用方案：Google Chart API
+                generateQRFallback(input);
+                return;
+            }
+            
             const canvas = document.createElement('canvas');
-            QRCode.toCanvas(canvas, input, function (error) {
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            QRCode.toCanvas(canvas, input, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
                 if (error) {
-                    showResult('qrResult', '生成QR码失败：' + error.message, true);
+                    console.error('QR码生成错误:', error);
+                    // 如果主要方案失败，使用备用方案
+                    generateQRFallback(input);
                 } else {
                     const resultDiv = document.getElementById('qrResult');
                     resultDiv.style.display = 'block';
@@ -1014,22 +1033,71 @@
                         <div style="text-align: center; margin: 20px 0;">
                             ${canvas.outerHTML}
                         </div>
-                        <button class="copy-btn" onclick="downloadQR('${input}')">下载QR码</button>
+                        <button class="copy-btn" onclick="downloadQR('${input.replace(/'/g, "\\'")}')">下载QR码</button>
                     `;
                 }
             });
         }
 
+        // 备用QR码生成方案
+        function generateQRFallback(text) {
+            const encodedText = encodeURIComponent(text);
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedText}`;
+            
+            const resultDiv = document.getElementById('qrResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result-section';
+            resultDiv.innerHTML = `
+                <h4>✅ QR码已生成</h4>
+                <div style="text-align: center; margin: 20px 0;">
+                    <img src="${qrUrl}" alt="QR Code" style="border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <button class="copy-btn" onclick="downloadQRFallback('${text.replace(/'/g, "\\'")}')">下载QR码</button>
+            `;
+        }
+
         function downloadQR(text) {
+            if (typeof QRCode === 'undefined') {
+                downloadQRFallback(text);
+                return;
+            }
+            
             const canvas = document.createElement('canvas');
-            QRCode.toCanvas(canvas, text, function (error) {
+            canvas.width = 400;
+            canvas.height = 400;
+            
+            QRCode.toCanvas(canvas, text, {
+                width: 400,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
                 if (!error) {
                     const link = document.createElement('a');
                     link.download = 'qrcode.png';
-                    link.href = canvas.toDataURL();
+                    link.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(link);
                     link.click();
+                    document.body.removeChild(link);
+                } else {
+                    downloadQRFallback(text);
                 }
             });
+        }
+
+        function downloadQRFallback(text) {
+            const encodedText = encodeURIComponent(text);
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodedText}`;
+            
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = qrUrl;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function clearQR() {
