@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>编码解码工具</title>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .encode-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .encode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .encode-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .encode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .encode-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-group textarea:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-encode {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-encode:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn-decode {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-decode:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #dc4444 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+            transform: translateY(-2px);
+        }
+
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .result-section h4 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            word-break: break-all;
+            white-space: pre-wrap;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .error {
+            color: #721c24;
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .error .result-text {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .encode-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔐 编码解码工具箱</h1>
+                <p>支持多种编码格式的在线转换工具</p>
+            </div>
+
+            <div class="main-content">
+                <div class="tabs">
+                    <button class="tab active"
+                        onclick="showTab('common')">常用编码</button>
+                    <button class="tab" onclick="showTab('hash')">哈希算法</button>
+                    <button class="tab"
+                        onclick="showTab('special')">特殊编码</button>
+                </div>
+
+                <div id="common" class="tab-content active">
+                    <div class="encode-grid">
+                        <!-- Base64 编码 -->
+                        <div class="encode-card">
+                            <h3>Base64 编码</h3>
+                            <div class="input-group">
+                                <label for="base64Input">输入文本：</label>
+                                <textarea id="base64Input"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeBase64()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeBase64()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearBase64()">清空</button>
+                            </div>
+                            <div id="base64Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- URL 编码 -->
+                        <div class="encode-card">
+                            <h3>URL 编码</h3>
+                            <div class="input-group">
+                                <label for="urlInput">输入文本：</label>
+                                <textarea id="urlInput"
+                                    placeholder="请输入要编码/解码的URL"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeURL()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeURL()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearURL()">清空</button>
+                            </div>
+                            <div id="urlResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- HTML 编码 -->
+                        <div class="encode-card">
+                            <h3>HTML 编码</h3>
+                            <div class="input-group">
+                                <label for="htmlInput">输入文本：</label>
+                                <textarea id="htmlInput"
+                                    placeholder="请输入要编码/解码的HTML"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeHTML()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeHTML()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearHTML()">清空</button>
+                            </div>
+                            <div id="htmlResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- Unicode 编码 -->
+                        <div class="encode-card">
+                            <h3>Unicode 编码</h3>
+                            <div class="input-group">
+                                <label for="unicodeInput">输入文本：</label>
+                                <textarea id="unicodeInput"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeUnicode()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeUnicode()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearUnicode()">清空</button>
+                            </div>
+                            <div id="unicodeResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- Hex 编码 -->
+                        <div class="encode-card">
+                            <h3>十六进制编码</h3>
+                            <div class="input-group">
+                                <label for="hexInput">输入文本：</label>
+                                <textarea id="hexInput"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeHex()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeHex()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearHex()">清空</button>
+                            </div>
+                            <div id="hexResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- Binary 编码 -->
+                        <div class="encode-card">
+                            <h3>二进制编码</h3>
+                            <div class="input-group">
+                                <label for="binaryInput">输入文本：</label>
+                                <textarea id="binaryInput"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeBinary()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeBinary()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearBinary()">清空</button>
+                            </div>
+                            <div id="binaryResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="hash" class="tab-content">
+                    <div class="encode-grid">
+                        <!-- MD5 哈希 -->
+                        <div class="encode-card">
+                            <h3>MD5 哈希</h3>
+                            <div class="input-group">
+                                <label for="md5Input">输入文本：</label>
+                                <textarea id="md5Input"
+                                    placeholder="请输入要计算MD5的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="hashMD5()">计算MD5</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearMD5()">清空</button>
+                            </div>
+                            <div id="md5Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- SHA1 哈希 -->
+                        <div class="encode-card">
+                            <h3>SHA1 哈希</h3>
+                            <div class="input-group">
+                                <label for="sha1Input">输入文本：</label>
+                                <textarea id="sha1Input"
+                                    placeholder="请输入要计算SHA1的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="hashSHA1()">计算SHA1</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearSHA1()">清空</button>
+                            </div>
+                            <div id="sha1Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- SHA256 哈希 -->
+                        <div class="encode-card">
+                            <h3>SHA256 哈希</h3>
+                            <div class="input-group">
+                                <label for="sha256Input">输入文本：</label>
+                                <textarea id="sha256Input"
+                                    placeholder="请输入要计算SHA256的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="hashSHA256()">计算SHA256</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearSHA256()">清空</button>
+                            </div>
+                            <div id="sha256Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- SHA512 哈希 -->
+                        <div class="encode-card">
+                            <h3>SHA512 哈希</h3>
+                            <div class="input-group">
+                                <label for="sha512Input">输入文本：</label>
+                                <textarea id="sha512Input"
+                                    placeholder="请输入要计算SHA512的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="hashSHA512()">计算SHA512</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearSHA512()">清空</button>
+                            </div>
+                            <div id="sha512Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="special" class="tab-content">
+                    <div class="encode-grid">
+                        <!-- Morse Code -->
+                        <div class="encode-card">
+                            <h3>摩尔斯电码</h3>
+                            <div class="input-group">
+                                <label for="morseInput">输入文本：</label>
+                                <textarea id="morseInput"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeMorse()">编码</button>
+                                <button class="btn btn-decode"
+                                    onclick="decodeMorse()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearMorse()">清空</button>
+                            </div>
+                            <div id="morseResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- ROT13 -->
+                        <div class="encode-card">
+                            <h3>ROT13 编码</h3>
+                            <div class="input-group">
+                                <label for="rot13Input">输入文本：</label>
+                                <textarea id="rot13Input"
+                                    placeholder="请输入要编码/解码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="encodeROT13()">编码/解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearROT13()">清空</button>
+                            </div>
+                            <div id="rot13Result" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- JWT 解码 -->
+                        <div class="encode-card">
+                            <h3>JWT 解码</h3>
+                            <div class="input-group">
+                                <label for="jwtInput">输入JWT：</label>
+                                <textarea id="jwtInput"
+                                    placeholder="请输入要解码的JWT令牌"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-decode"
+                                    onclick="decodeJWT()">解码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearJWT()">清空</button>
+                            </div>
+                            <div id="jwtResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+
+                        <!-- QR Code -->
+                        <div class="encode-card">
+                            <h3>QR码生成</h3>
+                            <div class="input-group">
+                                <label for="qrInput">输入文本：</label>
+                                <textarea id="qrInput"
+                                    placeholder="请输入要生成QR码的文本"></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn btn-encode"
+                                    onclick="generateQR()">生成QR码</button>
+                                <button class="btn btn-clear"
+                                    onclick="clearQR()">清空</button>
+                            </div>
+                            <div id="qrResult" class="result-section"
+                                style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+        <script>
+        // 标签页切换功能
+        function showTab(tabName) {
+            // 隐藏所有标签页内容
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签页激活状态
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 显示结果的通用函数
+        function showResult(resultId, content, isError = false) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            
+            if (isError) {
+                resultDiv.className = 'result-section error';
+                resultDiv.innerHTML = `
+                    <h4>❌ 错误</h4>
+                    <div class="result-text">${content}</div>
+                `;
+            } else {
+                resultDiv.className = 'result-section';
+                resultDiv.innerHTML = `
+                    <h4>✅ 结果</h4>
+                    <div class="result-text">${content}</div>
+                    <button class="copy-btn" onclick="copyToClipboard('${content.replace(/'/g, "\\'")}')">复制结果</button>
+                `;
+            }
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('已复制到剪贴板！');
+            });
+        }
+
+        // Base64 编码/解码
+        function encodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            if (!input) {
+                showResult('base64Result', '请输入要编码的文本', true);
+                return;
+            }
+            try {
+                const encoded = btoa(unescape(encodeURIComponent(input)));
+                showResult('base64Result', encoded);
+            } catch (e) {
+                showResult('base64Result', '编码失败：' + e.message, true);
+            }
+        }
+
+        function decodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            if (!input) {
+                showResult('base64Result', '请输入要解码的Base64文本', true);
+                return;
+            }
+            try {
+                const decoded = decodeURIComponent(escape(atob(input)));
+                showResult('base64Result', decoded);
+            } catch (e) {
+                showResult('base64Result', '解码失败：输入的不是有效的Base64格式', true);
+            }
+        }
+
+        function clearBase64() {
+            document.getElementById('base64Input').value = '';
+            document.getElementById('base64Result').style.display = 'none';
+        }
+
+        // URL 编码/解码
+        function encodeURL() {
+            const input = document.getElementById('urlInput').value;
+            if (!input) {
+                showResult('urlResult', '请输入要编码的文本', true);
+                return;
+            }
+            try {
+                const encoded = encodeURIComponent(input);
+                showResult('urlResult', encoded);
+            } catch (e) {
+                showResult('urlResult', '编码失败：' + e.message, true);
+            }
+        }
+
+        function decodeURL() {
+            const input = document.getElementById('urlInput').value;
+            if (!input) {
+                showResult('urlResult', '请输入要解码的URL文本', true);
+                return;
+            }
+            try {
+                const decoded = decodeURIComponent(input);
+                showResult('urlResult', decoded);
+            } catch (e) {
+                showResult('urlResult', '解码失败：输入的不是有效的URL编码格式', true);
+            }
+        }
+
+        function clearURL() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('urlResult').style.display = 'none';
+        }
+
+        // HTML 编码/解码
+        function encodeHTML() {
+            const input = document.getElementById('htmlInput').value;
+            if (!input) {
+                showResult('htmlResult', '请输入要编码的HTML文本', true);
+                return;
+            }
+            const encoded = input
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            showResult('htmlResult', encoded);
+        }
+
+        function decodeHTML() {
+            const input = document.getElementById('htmlInput').value;
+            if (!input) {
+                showResult('htmlResult', '请输入要解码的HTML文本', true);
+                return;
+            }
+            const decoded = input
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+            showResult('htmlResult', decoded);
+        }
+
+        function clearHTML() {
+            document.getElementById('htmlInput').value = '';
+            document.getElementById('htmlResult').style.display = 'none';
+        }
+
+        // Unicode 编码/解码
+        function encodeUnicode() {
+            const input = document.getElementById('unicodeInput').value;
+            if (!input) {
+                showResult('unicodeResult', '请输入要编码的文本', true);
+                return;
+            }
+            let encoded = '';
+            for (let i = 0; i < input.length; i++) {
+                const code = input.charCodeAt(i);
+                encoded += '\\u' + code.toString(16).padStart(4, '0');
+            }
+            showResult('unicodeResult', encoded);
+        }
+
+        function decodeUnicode() {
+            const input = document.getElementById('unicodeInput').value;
+            if (!input) {
+                showResult('unicodeResult', '请输入要解码的Unicode文本', true);
+                return;
+            }
+            try {
+                const decoded = input.replace(/\\u([\da-f]{4})/gi, (match, code) => {
+                    return String.fromCharCode(parseInt(code, 16));
+                });
+                showResult('unicodeResult', decoded);
+            } catch (e) {
+                showResult('unicodeResult', '解码失败：输入的不是有效的Unicode格式', true);
+            }
+        }
+
+        function clearUnicode() {
+            document.getElementById('unicodeInput').value = '';
+            document.getElementById('unicodeResult').style.display = 'none';
+        }
+
+        // 十六进制编码/解码
+        function encodeHex() {
+            const input = document.getElementById('hexInput').value;
+            if (!input) {
+                showResult('hexResult', '请输入要编码的文本', true);
+                return;
+            }
+            const encoded = Array.from(input).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+            showResult('hexResult', encoded);
+        }
+
+        function decodeHex() {
+            const input = document.getElementById('hexInput').value;
+            if (!input) {
+                showResult('hexResult', '请输入要解码的十六进制文本', true);
+                return;
+            }
+            try {
+                const decoded = input.replace(/[^0-9a-f]/gi, '').match(/.{1,2}/g).map(hex => String.fromCharCode(parseInt(hex, 16))).join('');
+                showResult('hexResult', decoded);
+            } catch (e) {
+                showResult('hexResult', '解码失败：输入的不是有效的十六进制格式', true);
+            }
+        }
+
+        function clearHex() {
+            document.getElementById('hexInput').value = '';
+            document.getElementById('hexResult').style.display = 'none';
+        }
+
+        // 二进制编码/解码
+        function encodeBinary() {
+            const input = document.getElementById('binaryInput').value;
+            if (!input) {
+                showResult('binaryResult', '请输入要编码的文本', true);
+                return;
+            }
+            const encoded = Array.from(input).map(c => c.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+            showResult('binaryResult', encoded);
+        }
+
+        function decodeBinary() {
+            const input = document.getElementById('binaryInput').value;
+            if (!input) {
+                showResult('binaryResult', '请输入要解码的二进制文本', true);
+                return;
+            }
+            try {
+                const decoded = input.split(/\s+/).map(bin => String.fromCharCode(parseInt(bin, 2))).join('');
+                showResult('binaryResult', decoded);
+            } catch (e) {
+                showResult('binaryResult', '解码失败：输入的不是有效的二进制格式', true);
+            }
+        }
+
+        function clearBinary() {
+            document.getElementById('binaryInput').value = '';
+            document.getElementById('binaryResult').style.display = 'none';
+        }
+
+        // MD5 哈希
+        function hashMD5() {
+            const input = document.getElementById('md5Input').value;
+            if (!input) {
+                showResult('md5Result', '请输入要计算MD5的文本', true);
+                return;
+            }
+            const hash = CryptoJS.MD5(input).toString();
+            showResult('md5Result', hash);
+        }
+
+        function clearMD5() {
+            document.getElementById('md5Input').value = '';
+            document.getElementById('md5Result').style.display = 'none';
+        }
+
+        // SHA1 哈希
+        function hashSHA1() {
+            const input = document.getElementById('sha1Input').value;
+            if (!input) {
+                showResult('sha1Result', '请输入要计算SHA1的文本', true);
+                return;
+            }
+            const hash = CryptoJS.SHA1(input).toString();
+            showResult('sha1Result', hash);
+        }
+
+        function clearSHA1() {
+            document.getElementById('sha1Input').value = '';
+            document.getElementById('sha1Result').style.display = 'none';
+        }
+
+        // SHA256 哈希
+        function hashSHA256() {
+            const input = document.getElementById('sha256Input').value;
+            if (!input) {
+                showResult('sha256Result', '请输入要计算SHA256的文本', true);
+                return;
+            }
+            const hash = CryptoJS.SHA256(input).toString();
+            showResult('sha256Result', hash);
+        }
+
+        function clearSHA256() {
+            document.getElementById('sha256Input').value = '';
+            document.getElementById('sha256Result').style.display = 'none';
+        }
+
+        // SHA512 哈希
+        function hashSHA512() {
+            const input = document.getElementById('sha512Input').value;
+            if (!input) {
+                showResult('sha512Result', '请输入要计算SHA512的文本', true);
+                return;
+            }
+            const hash = CryptoJS.SHA512(input).toString();
+            showResult('sha512Result', hash);
+        }
+
+        function clearSHA512() {
+            document.getElementById('sha512Input').value = '';
+            document.getElementById('sha512Result').style.display = 'none';
+        }
+
+        // 摩尔斯电码编码/解码
+        const morseCode = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+            'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+            'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+            'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+            'Y': '-.--', 'Z': '--..', '0': '-----', '1': '.----', '2': '..---',
+            '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...',
+            '8': '---..', '9': '----.', ' ': '/'
+        };
+
+        function encodeMorse() {
+            const input = document.getElementById('morseInput').value.toUpperCase();
+            if (!input) {
+                showResult('morseResult', '请输入要编码的文本', true);
+                return;
+            }
+            const encoded = input.split('').map(char => morseCode[char] || char).join(' ');
+            showResult('morseResult', encoded);
+        }
+
+        function decodeMorse() {
+            const input = document.getElementById('morseInput').value;
+            if (!input) {
+                showResult('morseResult', '请输入要解码的摩尔斯电码', true);
+                return;
+            }
+            const reverseMorse = Object.fromEntries(Object.entries(morseCode).map(([k, v]) => [v, k]));
+            const decoded = input.split(' ').map(code => reverseMorse[code] || code).join('');
+            showResult('morseResult', decoded);
+        }
+
+        function clearMorse() {
+            document.getElementById('morseInput').value = '';
+            document.getElementById('morseResult').style.display = 'none';
+        }
+
+        // ROT13 编码/解码
+        function encodeROT13() {
+            const input = document.getElementById('rot13Input').value;
+            if (!input) {
+                showResult('rot13Result', '请输入要编码的文本', true);
+                return;
+            }
+            const encoded = input.replace(/[A-Za-z]/g, function(char) {
+                const start = char <= 'Z' ? 65 : 97;
+                return String.fromCharCode(((char.charCodeAt(0) - start + 13) % 26) + start);
+            });
+            showResult('rot13Result', encoded);
+        }
+
+        function clearROT13() {
+            document.getElementById('rot13Input').value = '';
+            document.getElementById('rot13Result').style.display = 'none';
+        }
+
+        // JWT 解码
+        function decodeJWT() {
+            const input = document.getElementById('jwtInput').value;
+            if (!input) {
+                showResult('jwtResult', '请输入要解码的JWT', true);
+                return;
+            }
+            try {
+                const parts = input.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('JWT格式不正确');
+                }
+                
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                const result = {
+                    header: header,
+                    payload: payload,
+                    signature: parts[2]
+                };
+                
+                showResult('jwtResult', JSON.stringify(result, null, 2));
+            } catch (e) {
+                showResult('jwtResult', '解码失败：输入的不是有效的JWT格式', true);
+            }
+        }
+
+        function clearJWT() {
+            document.getElementById('jwtInput').value = '';
+            document.getElementById('jwtResult').style.display = 'none';
+        }
+
+        // QR码生成
+        function generateQR() {
+            const input = document.getElementById('qrInput').value;
+            if (!input) {
+                showResult('qrResult', '请输入要生成QR码的文本', true);
+                return;
+            }
+            
+            const canvas = document.createElement('canvas');
+            QRCode.toCanvas(canvas, input, function (error) {
+                if (error) {
+                    showResult('qrResult', '生成QR码失败：' + error.message, true);
+                } else {
+                    const resultDiv = document.getElementById('qrResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'result-section';
+                    resultDiv.innerHTML = `
+                        <h4>✅ QR码已生成</h4>
+                        <div style="text-align: center; margin: 20px 0;">
+                            ${canvas.outerHTML}
+                        </div>
+                        <button class="copy-btn" onclick="downloadQR('${input}')">下载QR码</button>
+                    `;
+                }
+            });
+        }
+
+        function downloadQR(text) {
+            const canvas = document.createElement('canvas');
+            QRCode.toCanvas(canvas, text, function (error) {
+                if (!error) {
+                    const link = document.createElement('a');
+                    link.download = 'qrcode.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }
+            });
+        }
+
+        function clearQR() {
+            document.getElementById('qrInput').value = '';
+            document.getElementById('qrResult').style.display = 'none';
+        }
+    </script>
+    </body>
+</html>
