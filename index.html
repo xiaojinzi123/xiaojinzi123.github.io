@@ -571,6 +571,12 @@
                 url: "plugins/encodeDecode.html",
                 description: "Base64、URL、HTML等多种编码解码",
                 icon: "🔐"
+            },
+            {
+                name: "时间戳转换工具",
+                url: "plugins/timestampConverter.html",
+                description: "支持秒/毫秒级时间戳与日期格式的双向转换",
+                icon: "⏰"
             }
         ];
 
@@ -633,6 +639,7 @@
                 const toolCard = document.createElement('a');
                 toolCard.href = tool.url;
                 toolCard.className = 'tool-card';
+                toolCard.target = '_blank';
                 toolCard.style.animationDelay = `${index * 0.1}s`;
                 
                 toolCard.innerHTML = `
