@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>进制转换工具</title>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: #333;
+            padding: 2rem;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerSlideIn 0.8s ease-out;
+        }
+
+        @keyframes containerSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: titleBounce 1s ease-out 0.3s both;
+        }
+
+        @keyframes titleBounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            animation: subtitleSlide 1s ease-out 0.5s both;
+        }
+
+        @keyframes subtitleSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .converter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .converter-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            animation: cardSlideIn 0.8s ease-out;
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .converter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-title {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .result-area {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5;
+            min-height: 60px;
+            word-break: break-all;
+        }
+
+        .base-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .info-card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .quick-convert {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quick-btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .success {
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.2);
+            border: 1px solid rgba(81, 207, 102, 0.5);
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                margin: 1rem;
+            }
+
+            .converter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .back-btn {
+                top: 1rem;
+                left: 1rem;
+                padding: 0.6rem 1.2rem;
+            }
+        }
+    </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <div class="header">
+                <h1>🔢 进制转换工具</h1>
+                <p>支持二进制、八进制、十进制、十六进制等多种进制间的转换</p>
+            </div>
+
+            <div class="base-info">
+                <div class="info-card">
+                    <h3>二进制 (Binary)</h3>
+                    <p>基数: 2<br>字符: 0, 1</p>
+                </div>
+                <div class="info-card">
+                    <h3>八进制 (Octal)</h3>
+                    <p>基数: 8<br>字符: 0-7</p>
+                </div>
+                <div class="info-card">
+                    <h3>十进制 (Decimal)</h3>
+                    <p>基数: 10<br>字符: 0-9</p>
+                </div>
+                <div class="info-card">
+                    <h3>十六进制 (Hexadecimal)</h3>
+                    <p>基数: 16<br>字符: 0-9, A-F</p>
+                </div>
+            </div>
+
+            <div class="converter-grid">
+                <!-- 基本进制转换 -->
+                <div class="converter-card">
+                    <div class="card-title">
+                        <span class="card-icon">🔄</span>
+                        基本进制转换
+                    </div>
+                    <div class="input-group">
+                        <label for="inputValue">输入数值:</label>
+                        <input type="text" id="inputValue"
+                            placeholder="请输入要转换的数值">
+                    </div>
+                    <div class="input-group">
+                        <label for="fromBase">从进制:</label>
+                        <select id="fromBase">
+                            <option value="2">二进制 (Binary)</option>
+                            <option value="8">八进制 (Octal)</option>
+                            <option value="10" selected>十进制 (Decimal)</option>
+                            <option value="16">十六进制 (Hexadecimal)</option>
+                            <option value="custom">自定义进制</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="customFromBase"
+                        style="display: none;">
+                        <label for="customFrom">自定义进制 (2-36):</label>
+                        <input type="number" id="customFrom" min="2" max="36"
+                            placeholder="输入进制数">
+                    </div>
+                    <div class="input-group">
+                        <label for="toBase">转换到进制:</label>
+                        <select id="toBase">
+                            <option value="2">二进制 (Binary)</option>
+                            <option value="8">八进制 (Octal)</option>
+                            <option value="10">十进制 (Decimal)</option>
+                            <option value="16" selected>十六进制
+                                (Hexadecimal)</option>
+                            <option value="custom">自定义进制</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="customToBase"
+                        style="display: none;">
+                        <label for="customTo">自定义进制 (2-36):</label>
+                        <input type="number" id="customTo" min="2" max="36"
+                            placeholder="输入进制数">
+                    </div>
+                    <div class="button-group">
+                        <button class="btn" onclick="convertBase()">转换</button>
+                        <button class="btn btn-secondary"
+                            onclick="clearBase()">清空</button>
+                    </div>
+                    <div class="result-area" id="convertResult">转换结果将显示在这里</div>
+                </div>
+
+                <!-- 全进制显示 -->
+                <div class="converter-card">
+                    <div class="card-title">
+                        <span class="card-icon">📊</span>
+                        全进制显示
+                    </div>
+                    <div class="input-group">
+                        <label for="allBaseInput">输入十进制数值:</label>
+                        <input type="number" id="allBaseInput"
+                            placeholder="请输入十进制数值">
+                    </div>
+                    <div class="button-group">
+                        <button class="btn"
+                            onclick="showAllBases()">显示所有进制</button>
+                        <button class="btn btn-secondary"
+                            onclick="clearAllBases()">清空</button>
+                    </div>
+                    <div class="result-area"
+                        id="allBasesResult">所有进制结果将显示在这里</div>
+                </div>
+
+                <!-- 批量转换 -->
+                <div class="converter-card">
+                    <div class="card-title">
+                        <span class="card-icon">📝</span>
+                        批量转换
+                    </div>
+                    <div class="input-group">
+                        <label for="batchInput">批量输入 (每行一个数值):</label>
+                        <textarea id="batchInput"
+                            placeholder="请输入要转换的数值，每行一个"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="batchFromBase">从进制:</label>
+                        <select id="batchFromBase">
+                            <option value="2">二进制</option>
+                            <option value="8">八进制</option>
+                            <option value="10" selected>十进制</option>
+                            <option value="16">十六进制</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="batchToBase">转换到进制:</label>
+                        <select id="batchToBase">
+                            <option value="2">二进制</option>
+                            <option value="8">八进制</option>
+                            <option value="10">十进制</option>
+                            <option value="16" selected>十六进制</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn"
+                            onclick="batchConvert()">批量转换</button>
+                        <button class="btn btn-secondary"
+                            onclick="clearBatch()">清空</button>
+                    </div>
+                    <div class="result-area" id="batchResult">批量转换结果将显示在这里</div>
+                </div>
+
+                <!-- 进制计算器 -->
+                <div class="converter-card">
+                    <div class="card-title">
+                        <span class="card-icon">🧮</span>
+                        进制计算器
+                    </div>
+                    <div class="input-group">
+                        <label for="calcNum1">第一个数:</label>
+                        <input type="text" id="calcNum1" placeholder="输入第一个数">
+                    </div>
+                    <div class="input-group">
+                        <label for="calcNum2">第二个数:</label>
+                        <input type="text" id="calcNum2" placeholder="输入第二个数">
+                    </div>
+                    <div class="input-group">
+                        <label for="calcBase">进制:</label>
+                        <select id="calcBase">
+                            <option value="2">二进制</option>
+                            <option value="8">八进制</option>
+                            <option value="10" selected>十进制</option>
+                            <option value="16">十六进制</option>
+                        </select>
+                    </div>
+                    <div class="quick-convert">
+                        <button class="quick-btn" onclick="calculate('add')">加法
+                            (+)</button>
+                        <button class="quick-btn"
+                            onclick="calculate('subtract')">减法 (-)</button>
+                        <button class="quick-btn"
+                            onclick="calculate('multiply')">乘法 (×)</button>
+                        <button class="quick-btn"
+                            onclick="calculate('divide')">除法 (÷)</button>
+                    </div>
+                    <div class="result-area" id="calcResult">计算结果将显示在这里</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // 处理自定义进制选择
+        document.getElementById('fromBase').addEventListener('change', function() {
+            const customFromBase = document.getElementById('customFromBase');
+            if (this.value === 'custom') {
+                customFromBase.style.display = 'block';
+            } else {
+                customFromBase.style.display = 'none';
+            }
+        });
+
+        document.getElementById('toBase').addEventListener('change', function() {
+            const customToBase = document.getElementById('customToBase');
+            if (this.value === 'custom') {
+                customToBase.style.display = 'block';
+            } else {
+                customToBase.style.display = 'none';
+            }
+        });
+
+        // 基本进制转换
+        function convertBase() {
+            const inputValue = document.getElementById('inputValue').value.trim();
+            const fromBaseSelect = document.getElementById('fromBase');
+            const toBaseSelect = document.getElementById('toBase');
+            const resultDiv = document.getElementById('convertResult');
+
+            if (!inputValue) {
+                showError(resultDiv, '请输入要转换的数值');
+                return;
+            }
+
+            try {
+                let fromBase = fromBaseSelect.value;
+                let toBase = toBaseSelect.value;
+
+                // 处理自定义进制
+                if (fromBase === 'custom') {
+                    fromBase = parseInt(document.getElementById('customFrom').value);
+                    if (!fromBase || fromBase < 2 || fromBase > 36) {
+                        showError(resultDiv, '自定义进制必须在2-36之间');
+                        return;
+                    }
+                }
+
+                if (toBase === 'custom') {
+                    toBase = parseInt(document.getElementById('customTo').value);
+                    if (!toBase || toBase < 2 || toBase > 36) {
+                        showError(resultDiv, '自定义进制必须在2-36之间');
+                        return;
+                    }
+                }
+
+                // 验证输入是否符合进制要求
+                if (!isValidForBase(inputValue, fromBase)) {
+                    showError(resultDiv, `输入的数值不符合${fromBase}进制格式`);
+                    return;
+                }
+
+                // 转换
+                const decimal = parseInt(inputValue, fromBase);
+                const result = decimal.toString(toBase).toUpperCase();
+
+                const baseNames = {
+                    2: '二进制',
+                    8: '八进制',
+                    10: '十进制',
+                    16: '十六进制'
+                };
+
+                const fromBaseName = baseNames[fromBase] || `${fromBase}进制`;
+                const toBaseName = baseNames[toBase] || `${toBase}进制`;
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>转换成功！</strong><br>
+                        ${fromBaseName}: ${inputValue}<br>
+                        ${toBaseName}: ${result}<br>
+                        十进制: ${decimal}
+                    </div>
+                `;
+            } catch (error) {
+                showError(resultDiv, '转换失败，请检查输入的数值是否正确');
+            }
+        }
+
+        // 验证数值是否符合进制要求
+        function isValidForBase(value, base) {
+            const validChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const allowedChars = validChars.substring(0, base);
+            
+            for (let char of value.toUpperCase()) {
+                if (allowedChars.indexOf(char) === -1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 显示所有进制
+        function showAllBases() {
+            const inputValue = document.getElementById('allBaseInput').value.trim();
+            const resultDiv = document.getElementById('allBasesResult');
+
+            if (!inputValue) {
+                showError(resultDiv, '请输入十进制数值');
+                return;
+            }
+
+            try {
+                const decimal = parseInt(inputValue, 10);
+                if (isNaN(decimal)) {
+                    showError(resultDiv, '请输入有效的十进制数值');
+                    return;
+                }
+
+                const binary = decimal.toString(2);
+                const octal = decimal.toString(8);
+                const hex = decimal.toString(16).toUpperCase();
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>十进制: ${decimal}</strong><br>
+                        二进制: ${binary}<br>
+                        八进制: ${octal}<br>
+                        十六进制: ${hex}<br>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">
+                        其他进制:<br>
+                        3进制: ${decimal.toString(3)}<br>
+                        5进制: ${decimal.toString(5)}<br>
+                        7进制: ${decimal.toString(7)}<br>
+                        32进制: ${decimal.toString(32).toUpperCase()}<br>
+                        36进制: ${decimal.toString(36).toUpperCase()}
+                    </div>
+                `;
+            } catch (error) {
+                showError(resultDiv, '转换失败，请检查输入的数值');
+            }
+        }
+
+        // 批量转换
+        function batchConvert() {
+            const inputText = document.getElementById('batchInput').value.trim();
+            const fromBase = parseInt(document.getElementById('batchFromBase').value);
+            const toBase = parseInt(document.getElementById('batchToBase').value);
+            const resultDiv = document.getElementById('batchResult');
+
+            if (!inputText) {
+                showError(resultDiv, '请输入要转换的数值');
+                return;
+            }
+
+            try {
+                const lines = inputText.split('\n').filter(line => line.trim() !== '');
+                const results = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!isValidForBase(line, fromBase)) {
+                        results.push(`第${i + 1}行: ${line} - 错误: 不符合${fromBase}进制格式`);
+                        continue;
+                    }
+
+                    try {
+                        const decimal = parseInt(line, fromBase);
+                        const converted = decimal.toString(toBase).toUpperCase();
+                        results.push(`第${i + 1}行: ${line} → ${converted}`);
+                    } catch (error) {
+                        results.push(`第${i + 1}行: ${line} - 错误: 转换失败`);
+                    }
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>批量转换结果:</strong><br>
+                        ${results.join('<br>')}
+                    </div>
+                `;
+            } catch (error) {
+                showError(resultDiv, '批量转换失败');
+            }
+        }
+
+        // 进制计算器
+        function calculate(operation) {
+            const num1 = document.getElementById('calcNum1').value.trim();
+            const num2 = document.getElementById('calcNum2').value.trim();
+            const base = parseInt(document.getElementById('calcBase').value);
+            const resultDiv = document.getElementById('calcResult');
+
+            if (!num1 || !num2) {
+                showError(resultDiv, '请输入两个数值');
+                return;
+            }
+
+            if (!isValidForBase(num1, base) || !isValidForBase(num2, base)) {
+                showError(resultDiv, `输入的数值不符合${base}进制格式`);
+                return;
+            }
+
+            try {
+                const decimal1 = parseInt(num1, base);
+                const decimal2 = parseInt(num2, base);
+                let result;
+                let operationSymbol;
+
+                switch (operation) {
+                    case 'add':
+                        result = decimal1 + decimal2;
+                        operationSymbol = '+';
+                        break;
+                    case 'subtract':
+                        result = decimal1 - decimal2;
+                        operationSymbol = '-';
+                        break;
+                    case 'multiply':
+                        result = decimal1 * decimal2;
+                        operationSymbol = '×';
+                        break;
+                    case 'divide':
+                        if (decimal2 === 0) {
+                            showError(resultDiv, '除数不能为0');
+                            return;
+                        }
+                        result = Math.floor(decimal1 / decimal2);
+                        operationSymbol = '÷';
+                        break;
+                    default:
+                        showError(resultDiv, '未知的操作');
+                        return;
+                }
+
+                const resultInBase = result.toString(base).toUpperCase();
+                const baseName = {
+                    2: '二进制',
+                    8: '八进制',
+                    10: '十进制',
+                    16: '十六进制'
+                }[base];
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>计算结果 (${baseName}):</strong><br>
+                        ${num1} ${operationSymbol} ${num2} = ${resultInBase}<br>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">
+                        十进制: ${decimal1} ${operationSymbol} ${decimal2} = ${result}
+                    </div>
+                `;
+            } catch (error) {
+                showError(resultDiv, '计算失败，请检查输入的数值');
+            }
+        }
+
+        // 清空功能
+        function clearBase() {
+            document.getElementById('inputValue').value = '';
+            document.getElementById('convertResult').innerHTML = '转换结果将显示在这里';
+        }
+
+        function clearAllBases() {
+            document.getElementById('allBaseInput').value = '';
+            document.getElementById('allBasesResult').innerHTML = '所有进制结果将显示在这里';
+        }
+
+        function clearBatch() {
+            document.getElementById('batchInput').value = '';
+            document.getElementById('batchResult').innerHTML = '批量转换结果将显示在这里';
+        }
+
+        // 显示错误信息
+        function showError(element, message) {
+            element.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // 快速转换示例
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加一些示例数据
+            const examples = [
+                { input: '1010', from: 2, to: 10, desc: '二进制转十进制' },
+                { input: '255', from: 10, to: 16, desc: '十进制转十六进制' },
+                { input: 'FF', from: 16, to: 2, desc: '十六进制转二进制' },
+                { input: '777', from: 8, to: 10, desc: '八进制转十进制' }
+            ];
+
+            // 可以在这里添加更多交互功能
+            console.log('进制转换工具已加载');
+        });
+    </script>
+    </body>
+</html>
