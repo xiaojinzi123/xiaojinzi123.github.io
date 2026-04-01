@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>拾匣 - 纯离线存储密码的工具</title>
+  <meta
+    name="description"
+    content="拾匣是一个纯离线存储密码的工具，密码只保存在你的设备中，简洁、安全、轻量。"
+  />
+  <link rel="icon" type="image/png" href="assets/app-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #f6f3ed;
+      --bg-soft: rgba(255, 255, 255, 0.62);
+      --panel: rgba(255, 252, 247, 0.82);
+      --text: #18211f;
+      --muted: #60706c;
+      --line: rgba(24, 33, 31, 0.1);
+      --brand: #274a45;
+      --brand-soft: #d6c19c;
+      --shadow: 0 24px 70px rgba(39, 74, 69, 0.12);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --content-width: 1160px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(105, 152, 144, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(214, 193, 156, 0.35), transparent 26%),
+        linear-gradient(180deg, #f8f5ee 0%, var(--bg) 48%, #f1ede5 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at center, black 20%, transparent 75%);
+      opacity: 0.32;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(calc(100% - 32px), var(--content-width));
+      margin: 0 auto;
+      padding: 28px 0 72px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0 24px;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .brand-mark img {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(39, 74, 69, 0.18);
+    }
+
+    .nav-link {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 36px;
+      align-items: center;
+      padding: 48px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(250, 246, 239, 0.88));
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: var(--brand);
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(39, 74, 69, 0.08);
+      border-radius: 999px;
+      width: fit-content;
+    }
+
+    .hero h1,
+    .section-title h2 {
+      margin: 0;
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 7vw, 88px);
+      line-height: 0.98;
+    }
+
+    .hero p {
+      margin: 20px 0 0;
+      max-width: 560px;
+      font-size: 18px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 32px;
+    }
+
+    .download-btn,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      padding: 0 24px;
+      border-radius: 999px;
+      font-weight: 600;
+      transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+    }
+
+    .download-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #234640, #3a645d);
+      box-shadow: 0 18px 34px rgba(39, 74, 69, 0.22);
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 38px rgba(39, 74, 69, 0.28);
+    }
+
+    .ghost-btn {
+      color: var(--brand);
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(39, 74, 69, 0.12);
+    }
+
+    .hero-note {
+      margin-top: 14px;
+      font-size: 14px;
+      color: rgba(24, 33, 31, 0.56);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .tag {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(39, 74, 69, 0.08);
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--brand);
+      font-size: 14px;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 560px;
+      padding: 18px;
+      border-radius: calc(var(--radius-xl) - 4px);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(248, 242, 233, 0.96));
+      border: 1px solid rgba(39, 74, 69, 0.08);
+      overflow: hidden;
+    }
+
+    .hero-visual::before,
+    .hero-visual::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(10px);
+      opacity: 0.5;
+    }
+
+    .hero-visual::before {
+      width: 160px;
+      height: 160px;
+      top: 24px;
+      right: 18px;
+      background: rgba(214, 193, 156, 0.62);
+    }
+
+    .hero-visual::after {
+      width: 220px;
+      height: 220px;
+      left: -46px;
+      bottom: -30px;
+      background: rgba(77, 118, 111, 0.24);
+    }
+
+    .phone-card {
+      position: absolute;
+      overflow: hidden;
+      border-radius: 30px;
+      border: 10px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 24px 56px rgba(24, 33, 31, 0.12);
+      background: #fff;
+    }
+
+    .phone-card.main {
+      width: min(52%, 310px);
+      top: 28px;
+      right: 8%;
+      transform: rotate(5deg);
+    }
+
+    .phone-card.secondary {
+      width: min(44%, 250px);
+      left: 2%;
+      bottom: 64px;
+      transform: rotate(-7deg);
+    }
+
+    .phone-card.tertiary {
+      width: min(42%, 232px);
+      right: 2%;
+      bottom: 22px;
+      transform: rotate(2deg);
+    }
+
+    .phone-card img {
+      width: 100%;
+      height: auto;
+    }
+
+    .section {
+      padding-top: 88px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .section-title p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .shot {
+      position: relative;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 18px 48px rgba(24, 33, 31, 0.08);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .shot::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.14) 100%);
+      pointer-events: none;
+    }
+
+    .shot img {
+      border-radius: 26px;
+      box-shadow: 0 20px 38px rgba(24, 33, 31, 0.12);
+    }
+
+    .shot-label {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .feature {
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.52);
+      border: 1px solid rgba(39, 74, 69, 0.08);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 36px rgba(24, 33, 31, 0.06);
+    }
+
+    .feature span {
+      display: inline-flex;
+      width: 42px;
+      height: 42px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      background: rgba(39, 74, 69, 0.08);
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    .feature h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .footer {
+      padding: 44px 0 12px;
+      color: rgba(24, 33, 31, 0.54);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 660px;
+      }
+
+      .gallery,
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(calc(100% - 20px), var(--content-width));
+        padding-top: 16px;
+      }
+
+      .nav {
+        padding-bottom: 18px;
+      }
+
+      .nav-link {
+        display: none;
+      }
+
+      .hero {
+        padding: 28px 20px;
+        gap: 28px;
+        border-radius: 28px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-visual {
+        min-height: 560px;
+        padding: 12px;
+      }
+
+      .phone-card {
+        border-width: 8px;
+        border-radius: 24px;
+      }
+
+      .phone-card.main {
+        width: 60%;
+        right: 4%;
+      }
+
+      .phone-card.secondary {
+        width: 50%;
+        left: 0;
+        bottom: 74px;
+      }
+
+      .phone-card.tertiary {
+        width: 48%;
+        right: -2%;
+      }
+
+      .section {
+        padding-top: 64px;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-title p {
+        margin-top: 12px;
+      }
+
+      .shot,
+      .feature {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="nav">
+      <a class="brand-mark" href="#top" aria-label="拾匣首页">
+        <img src="assets/app-icon.png" alt="拾匣 App 图标" />
+        <span>拾匣 Shixia</span>
+      </a>
+      <a class="nav-link" href="#screens">产品展示</a>
+    </header>
+
+    <section class="hero" id="top">
+      <div>
+        <div class="eyebrow">纯离线密码存储</div>
+        <h1>拾匣</h1>
+        <p>
+          一个纯离线存储密码的工具。你的数据只保存在自己的设备里，没有云端同步，不做多余打扰，把密码管理留给更安静、更可控的方式。
+        </p>
+
+        <div class="hero-actions">
+          <a class="download-btn" id="download-link" href="#" aria-disabled="true">下载 iOS App</a>
+          <a class="ghost-btn" href="#screens">查看展示图</a>
+        </div>
+        <div class="hero-note">下载按钮已预留，上线后只需补上 App Store 链接。</div>
+
+        <div class="tags" aria-label="产品特点">
+          <span class="tag">纯离线</span>
+          <span class="tag">本地存储</span>
+          <span class="tag">轻量简洁</span>
+          <span class="tag">更少打扰</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone-card main">
+          <img src="assets/2.PNG" alt="" />
+        </div>
+        <div class="phone-card secondary">
+          <img src="assets/1.PNG" alt="" />
+        </div>
+        <div class="phone-card tertiary">
+          <img src="assets/3.PNG" alt="" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="feature-title">
+      <div class="section-head">
+        <div class="section-title">
+          <h2 id="feature-title">只保留必要的功能和秩序</h2>
+          <p>没有复杂设置堆叠，没有冗余流程，把密码条目收纳得简单、直接、清晰。</p>
+        </div>
+      </div>
+
+      <div class="features">
+        <article class="feature">
+          <span>01</span>
+          <h3>纯离线</h3>
+          <p>密码数据只保存在本机，不依赖云端服务，减少不必要的数据流转。</p>
+        </article>
+        <article class="feature">
+          <span>02</span>
+          <h3>本地掌控</h3>
+          <p>条目、搜索、设置都围绕本地使用体验展开，让密码始终留在自己手里。</p>
+        </article>
+        <article class="feature">
+          <span>03</span>
+          <h3>极简界面</h3>
+          <p>界面克制，信息层级明确，打开就能用，把注意力留给真正需要的内容。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="screens" aria-labelledby="screens-title">
+      <div class="section-head">
+        <div class="section-title">
+          <h2 id="screens-title">应用展示</h2>
+          <p>从条目管理、搜索到设置页，保持一致的节奏与留白。</p>
+        </div>
+      </div>
+
+      <div class="gallery">
+        <figure class="shot">
+          <img src="assets/1.PNG" alt="拾匣首页展示图" />
+          <figcaption class="shot-label">Vault - 条目列表与收藏入口</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/2.PNG" alt="拾匣搜索页展示图" />
+          <figcaption class="shot-label">Search - 快速定位已知条目</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/3.PNG" alt="拾匣设置页展示图" />
+          <figcaption class="shot-label">Settings - 管理安全与剪贴板保护</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>拾匣 · 一个纯离线存储密码的工具</div>
+    </footer>
+  </main>
+
+  <script>
+    const APP_STORE_URL = "";
+    const downloadLink = document.getElementById("download-link");
+
+    if (APP_STORE_URL) {
+      downloadLink.href = APP_STORE_URL;
+      downloadLink.removeAttribute("aria-disabled");
+    } else {
+      downloadLink.addEventListener("click", function (event) {
+        event.preventDefault();
+      });
+    }
+  </script>
+</body>
+</html>
